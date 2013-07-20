@@ -11,12 +11,10 @@
     "type": "git",
     "url": "git://github.com/robogeek/akashacms-breadcrumbs.git"
   },
-  "version": "0.1.4",
+  "version": "0.1.6",
   "engines": {
     "node": ">=0.10.1"
   },
   "dependencies": {
-    "async": ">=0.1.22",
-    "akashacms": ">=0.2.11"
   }
 }
