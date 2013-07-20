@@ -1,0 +1,22 @@
+{
+  "author": {
+    "name": "David Herron",
+    "email": "david@davidherron.com",
+    "url": "http://nodejs.davidherron.com"
+  },
+  "name": "akashacms-breadcrumbs",
+  "description": "A plugin for AkashaCMS that generates breadcrumb trails",
+  "homepage": "https://github.com/robogeek/akashacms-breadcrumbs",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/robogeek/akashacms-breadcrumbs.git"
+  },
+  "version": "0.1.3",
+  "engines": {
+    "node": ">=0.10.1"
+  },
+  "dependencies": {
+    "async": ">=0.1.22",
+    "akashacms": ">=0.2.11"
+  }
+}
