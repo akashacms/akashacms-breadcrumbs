@@ -17,19 +17,18 @@
  *  limitations under the License.
  */
 
-var akasha   = require('akashacms');
 var path     = require('path');
 var util     = require('util');
 
 /**
  * Add ourselves to the config data.
  **/
-module.exports.config = function(config) {
+module.exports.config = function(akasha, config) {
     config.root_partials.push(path.join(__dirname, 'partials'));
     config.funcs.breadcrumbsSync = function(arg, callback) {
         if (!arg.fileName)  { callback(new Error("No 'fileName' given ")); }
         var val = akasha.partialSync(config, "breadcrumbs.html.ejs", {
-            breadcrumbs: breadcrumbTrail(config.root_docs, arg.fileName)
+            breadcrumbs: breadcrumbTrail(akasha, config.root_docs, arg.fileName)
         });
         if (callback) callback(undefined, val);
         return val;
@@ -52,7 +51,7 @@ var crumb = function(entry) {
  * the Entry for the given file, and any index.html that is a sibling or parent
  * of that file.
  **/
-var breadcrumbTrail = function(root_docs, fileName) {
+var breadcrumbTrail = function(akasha, root_docs, fileName) {
     var breadCrumbData = [];
     var fnBase = path.basename(fileName);
     var dirname = path.dirname(fileName);
