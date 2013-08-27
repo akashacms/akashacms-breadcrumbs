@@ -28,21 +28,17 @@ module.exports.config = function(akasha, config) {
     config.funcs.breadcrumbsSync = function(arg, callback) {
         if (!arg.fileName)  { callback(new Error("No 'fileName' given ")); }
         var val = akasha.partialSync(config, "breadcrumbs.html.ejs", {
-            breadcrumbs: breadcrumbTrail(akasha, config.root_docs, arg.fileName)
+            breadcrumbs: breadcrumbTrail(akasha, config, arg.fileName)
         });
         if (callback) callback(undefined, val);
         return val;
     }
 }
 
-var crumb = function(entry) {
-    var thepath = entry.fullpath;
-    if (path.extname(thepath) !== ".html") {
-        thepath = thepath.substr(0, thepath.indexOf(path.extname(thepath)));
-    }
+var crumb = function(akasha, entry) {
     return {
         title: entry.frontmatter.title,
-        url: thepath.substr(thepath.indexOf('/'))
+        url: akasha.urlForFile(entry.path)
     };
 }
 
@@ -51,15 +47,15 @@ var crumb = function(entry) {
  * the Entry for the given file, and any index.html that is a sibling or parent
  * of that file.
  **/
-var breadcrumbTrail = function(akasha, root_docs, fileName) {
+var breadcrumbTrail = function(akasha, config, fileName) {
     var breadCrumbData = [];
     var fnBase = path.basename(fileName);
     var dirname = path.dirname(fileName);
-    var entry = akasha.getFileEntry(root_docs, fileName);
+    var entry = akasha.getFileEntry(config.root_docs, fileName);
     if (!entry) {
         throw new Error('NO FILE FOUND for ' + fileName);
     }
-    breadCrumbData.push(crumb(entry));
+    breadCrumbData.push(crumb(akasha, entry));
     
     
     var quitLoop = false;
@@ -71,10 +67,10 @@ var breadcrumbTrail = function(akasha, root_docs, fileName) {
     
     while (! quitLoop) {
         // util.log('*** trying ' + dirname);
-        var indx = akasha.findIndexFile(root_docs, dirname);
+        var indx = akasha.findIndexFile(config, dirname);
         if (indx) {
             // util.log('got index=' + util.inspect(indx));
-            breadCrumbData.unshift(crumb(indx));
+            breadCrumbData.unshift(crumb(akasha, indx));
         }
         if (dirname === '.') quitLoop = true;
         else dirname = path.dirname(dirname);
