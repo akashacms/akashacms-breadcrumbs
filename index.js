@@ -26,9 +26,9 @@ var util     = require('util');
 module.exports.config = function(akasha, config) {
     config.root_partials.push(path.join(__dirname, 'partials'));
     config.funcs.breadcrumbsSync = function(arg, callback) {
-        if (!arg.fileName)  { callback(new Error("No 'fileName' given ")); }
+        if (!arg.documentPath)  { callback(new Error("No 'documentPath' given ")); }
         var val = akasha.partialSync(config, "breadcrumbs.html.ejs", {
-            breadcrumbs: breadcrumbTrail(akasha, config, arg.fileName)
+            breadcrumbs: breadcrumbTrail(akasha, config, arg.documentPath)
         });
         if (callback) callback(undefined, val);
         return val;
