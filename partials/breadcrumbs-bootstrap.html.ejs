@@ -1,0 +1,9 @@
+<div id="breadcrumbTrail">
+    <ol class="breadcrumb">
+    <%
+    for (var i in breadcrumbs) {
+        %> <li> <a href="<%= breadcrumbs[i].url %>"><%= breadcrumbs[i].title %></a> </li><%
+    }
+    %>
+    </ol>
+</div>
