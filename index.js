@@ -33,6 +33,14 @@ module.exports.config = function(akasha, config) {
         if (callback) callback(undefined, val);
         return val;
     }
+    config.funcs.breadcrumbsBootstrapSync = function(arg, callback) {
+        if (!arg.documentPath)  { callback(new Error("No 'documentPath' given ")); }
+        var val = akasha.partialSync(config, "breadcrumbs-bootstrap.html.ejs", {
+            breadcrumbs: breadcrumbTrail(akasha, config, arg.documentPath)
+        });
+        if (callback) callback(undefined, val);
+        return val;
+    }
 }
 
 var crumb = function(akasha, entry) {
