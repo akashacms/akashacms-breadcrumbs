@@ -27,15 +27,7 @@ module.exports.config = function(akasha, config) {
     config.root_partials.push(path.join(__dirname, 'partials'));
     config.funcs.breadcrumbsSync = function(arg, callback) {
         if (!arg.documentPath)  { callback(new Error("No 'documentPath' given ")); }
-        var val = akasha.partialSync(config, "breadcrumbs.html.ejs", {
-            breadcrumbs: breadcrumbTrail(akasha, config, arg.documentPath)
-        });
-        if (callback) callback(undefined, val);
-        return val;
-    }
-    config.funcs.breadcrumbsBootstrapSync = function(arg, callback) {
-        if (!arg.documentPath)  { callback(new Error("No 'documentPath' given ")); }
-        var val = akasha.partialSync(config, "breadcrumbs-bootstrap.html.ejs", {
+        var val = akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
             breadcrumbs: breadcrumbTrail(akasha, config, arg.documentPath)
         });
         if (callback) callback(undefined, val);
