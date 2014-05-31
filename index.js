@@ -25,22 +25,36 @@ var util     = require('util');
  **/
 module.exports.config = function(akasha, config) {
     config.root_partials.push(path.join(__dirname, 'partials'));
+    if (config.mahabhuta) {
+        config.mahabhuta.push(function(config, $, metadata, done) {
+            $('breadcrumb-trail').each(function(i, elem) {
+                var val = akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
+                    breadcrumbs: breadcrumbTrail(akasha, config, metadata.documentPath)
+                });
+                // util.log('breadcrumb-trail to replace with '+ val);
+                $(this).replaceWith(val);
+            });
+            done();
+        });
+    }
     config.funcs.breadcrumbsSync = function(arg, callback) {
+        throw new Error("Should not call breadcrumbsSync");
+        // util.log('breadcrumbsSync '+ util.inspect(arg));
         if (!arg.documentPath)  { callback(new Error("No 'documentPath' given ")); }
         var val = akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
             breadcrumbs: breadcrumbTrail(akasha, config, arg.documentPath)
         });
         if (callback) callback(undefined, val);
         return val;
-    }
-}
+    };
+};
 
 var crumb = function(akasha, entry) {
     return {
         title: entry.frontmatter.title,
         url: akasha.urlForFile(entry.path)
     };
-}
+};
 
 /**
  * Find info useful for constructing a bookmark trail on a page.  This is
@@ -66,7 +80,7 @@ var breadcrumbTrail = function(akasha, config, fileName) {
     }
     
     while (! quitLoop) {
-        // util.log('*** trying ' + dirname);
+        // util.log('*** trying "' + dirname +'"');
         var indx = akasha.findIndexFile(config, dirname);
         if (indx) {
             // util.log('got index=' + util.inspect(indx));
@@ -79,5 +93,5 @@ var breadcrumbTrail = function(akasha, config, fileName) {
     
     // util.log(util.inspect(breadCrumbData));
     return breadCrumbData;
-}
+};
 
