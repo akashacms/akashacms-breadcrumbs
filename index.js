@@ -28,11 +28,9 @@ module.exports.config = function(akasha, config) {
     if (config.mahabhuta) {
         config.mahabhuta.push(function(config, $, metadata, done) {
             $('breadcrumb-trail').each(function(i, elem) {
-                var val = akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
+                $(this).replaceWith(akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
                     breadcrumbs: breadcrumbTrail(akasha, config, metadata.documentPath)
-                });
-                // util.log('breadcrumb-trail to replace with '+ val);
-                $(this).replaceWith(val);
+                }));
             });
             done();
         });
