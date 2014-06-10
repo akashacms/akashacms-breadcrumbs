@@ -26,11 +26,13 @@ var util     = require('util');
 module.exports.config = function(akasha, config) {
     config.root_partials.push(path.join(__dirname, 'partials'));
     if (config.mahabhuta) {
-        config.mahabhuta.push(function(config, $, metadata, done) {
+        config.mahabhuta.push(function(akasha, config, $, metadata, done) {
             $('breadcrumb-trail').each(function(i, elem) {
-                $(this).replaceWith(akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
-                    breadcrumbs: breadcrumbTrail(akasha, config, metadata.documentPath)
-                }));
+                $(this).replaceWith(
+                    akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
+                        breadcrumbs: breadcrumbTrail(akasha, config, metadata.documentPath)
+                    })
+                );
             });
             done();
         });
