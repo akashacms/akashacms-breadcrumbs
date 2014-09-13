@@ -51,7 +51,7 @@ module.exports.config = function(akasha, config) {
 
 var crumb = function(akasha, entry) {
     return {
-        title: entry.frontmatter.title,
+        title: entry.frontmatter.yaml.title,
         url: akasha.urlForFile(entry.path)
     };
 };
