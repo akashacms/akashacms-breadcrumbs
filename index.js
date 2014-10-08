@@ -86,7 +86,7 @@ var breadcrumbTrail = function(akasha, config, fileName) {
             // util.log('got index=' + util.inspect(indx));
             breadCrumbData.unshift(crumb(akasha, indx));
         }
-        if (dirname === '.') quitLoop = true;
+        if (dirname === '.' || dirname === '/') quitLoop = true;
         else dirname = path.dirname(dirname);
         // util.log('dirname now ' + dirname);
     }
