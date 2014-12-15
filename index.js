@@ -44,7 +44,7 @@ module.exports.config = function(akasha, config) {
 						done(err); 
 					} else {
 						// util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
-						var replace = akasha.partialSync(config,"breadcrumb-trail.html.ejs",{
+						var replace = akasha.partialSync("breadcrumb-trail.html.ejs",{
 							breadcrumbs: trail
 						});
 						async.each(brdtrails,
@@ -73,7 +73,7 @@ module.exports.config = function(akasha, config) {
         throw new Error("Should not call breadcrumbsSync - use <breadcrumb-trail>");
         // util.log('breadcrumbsSync '+ util.inspect(arg));
         if (!arg.documentPath)  { callback(new Error("No 'documentPath' given ")); }
-        var val = akasha.partialSync(config, "breadcrumb-trail.html.ejs", {
+        var val = akasha.partialSync("breadcrumb-trail.html.ejs", {
             breadcrumbs: breadcrumbTrail(akasha, config, arg.documentPath)
         });
         if (callback) callback(undefined, val);
