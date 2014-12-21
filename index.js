@@ -27,7 +27,7 @@ var async    = require('async');
 module.exports.config = function(akasha, config) {
     config.root_partials.push(path.join(__dirname, 'partials'));
     if (config.mahabhuta) {
-        config.mahabhuta.push(function($, metadata, done) {
+        config.mahabhuta.push(function($, metadata, dirty, done) {
         	var docpath = metadata.documentPath;
         	var brdtrails = [];
             $('breadcrumb-trail').each(function(i, elem) { brdtrails.push(elem); });
