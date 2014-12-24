@@ -44,41 +44,32 @@ module.exports.config = function(akasha, config) {
 						done(err); 
 					} else {
 						// util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
-						var replace = akasha.partialSync("breadcrumb-trail.html.ejs",{
+						akasha.partial("breadcrumb-trail.html.ejs", {
 							breadcrumbs: trail
+						}, function(err, replace) {
+							async.each(brdtrails,
+								function(brd, cb) {
+									if (err) cb(err);
+									else {
+										$(brd).replaceWith(replace);
+										cb();
+									}
+								},
+								function(err) {
+									if (err) { 
+										// util.log('ERROR <breadcrumb-trail> '+ err);
+										done(err); 
+									} else {
+										// util.log('DONE <breadcrumb-trail>'); 
+										done(); 
+									}
+								});
 						});
-						async.each(brdtrails,
-							function(brd, cb) {
-								if (err) cb(err);
-								else {
-									$(brd).replaceWith(replace);
-									cb();
-								}
-							},
-							function(err) {
-								if (err) { 
-									// util.log('ERROR <breadcrumb-trail> '+ err);
-									done(err); 
-								} else {
-									// util.log('DONE <breadcrumb-trail>'); 
-									done(); 
-								}
-							});
 					}
 				});
 			}
         });
     }
-    config.funcs.breadcrumbsSync = function(arg, callback) {
-        throw new Error("Should not call breadcrumbsSync - use <breadcrumb-trail>");
-        // util.log('breadcrumbsSync '+ util.inspect(arg));
-        if (!arg.documentPath)  { callback(new Error("No 'documentPath' given ")); }
-        var val = akasha.partialSync("breadcrumb-trail.html.ejs", {
-            breadcrumbs: breadcrumbTrail(akasha, config, arg.documentPath)
-        });
-        if (callback) callback(undefined, val);
-        return val;
-    };
 };
 
 var crumb = function(akasha, entry) {
