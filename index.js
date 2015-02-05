@@ -21,55 +21,19 @@ var path     = require('path');
 var util     = require('util');
 var async    = require('async');
 
+var akasha;
+var config;
+var logger;
+
 /**
  * Add ourselves to the config data.
  **/
-module.exports.config = function(akasha, config) {
+module.exports.config = function(_akasha, _config) {
+	akasha = _akasha;
+	config = _config;
+    logger = akasha.getLogger("breadcrumbs");
     config.root_partials.push(path.join(__dirname, 'partials'));
-    if (config.mahabhuta) {
-        config.mahabhuta.push(function($, metadata, dirty, done) {
-        	var docpath = metadata.documentPath;
-        	var brdtrails = [];
-            $('breadcrumb-trail').each(function(i, elem) { brdtrails.push(elem); });
-        	// util.log('breadcrumbs <breadcrumb-trail> count='+ brdtrails.length);
-        	if (brdtrails.length <= 0) {
-        		// util.log('EMPTY <breadcrumb-trail>');
-        		done();
-        	} else {
-        		// util.log('before breadcrumbTrail '+ docpath);
-				breadcrumbTrail(akasha, config, docpath, function(err, trail) {
-					// util.log(util.inspect(trail));
-					if (err) { 
-						// util.log('ERROR <breadcrumb-trail> '+ err); 
-						done(err); 
-					} else {
-						// util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
-						akasha.partial("breadcrumb-trail.html.ejs", {
-							breadcrumbs: trail
-						}, function(err, replace) {
-							async.each(brdtrails,
-								function(brd, cb) {
-									if (err) cb(err);
-									else {
-										$(brd).replaceWith(replace);
-										cb();
-									}
-								},
-								function(err) {
-									if (err) { 
-										// util.log('ERROR <breadcrumb-trail> '+ err);
-										done(err); 
-									} else {
-										// util.log('DONE <breadcrumb-trail>'); 
-										done(); 
-									}
-								});
-						});
-					}
-				});
-			}
-        });
-    }
+	return module.exports;
 };
 
 var crumb = function(akasha, entry) {
@@ -98,3 +62,47 @@ var breadcrumbTrail = function(akasha, config, fileName, done) {
     done(undefined, breadCrumbData);
 };
 
+module.exports.mahabhuta = [
+	function($, metadata, dirty, done) {
+		var docpath = metadata.documentPath;
+		var brdtrails = [];
+		$('breadcrumb-trail').each(function(i, elem) { brdtrails.push(elem); });
+		// util.log('breadcrumbs <breadcrumb-trail> count='+ brdtrails.length);
+		if (brdtrails.length <= 0) {
+			// util.log('EMPTY <breadcrumb-trail>');
+			done();
+		} else {
+			// util.log('before breadcrumbTrail '+ docpath);
+			breadcrumbTrail(akasha, config, docpath, function(err, trail) {
+				// util.log(util.inspect(trail));
+				if (err) { 
+					// util.log('ERROR <breadcrumb-trail> '+ err); 
+					done(err); 
+				} else {
+					// util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
+					akasha.partial("breadcrumb-trail.html.ejs", {
+						breadcrumbs: trail
+					}, function(err, replace) {
+						async.each(brdtrails,
+							function(brd, cb) {
+								if (err) cb(err);
+								else {
+									$(brd).replaceWith(replace);
+									cb();
+								}
+							},
+							function(err) {
+								if (err) { 
+									// util.log('ERROR <breadcrumb-trail> '+ err);
+									done(err); 
+								} else {
+									// util.log('DONE <breadcrumb-trail>'); 
+									done(); 
+								}
+							});
+					});
+				}
+			});
+		}
+	}
+];
