@@ -55,7 +55,7 @@ var breadcrumbTrail = function(akasha, config, fileName, done) {
     var fnBase = path.basename(fileName);
     var dirname = path.dirname(fileName);
     
-    var indexChain = akasha.indexChain(config, fileName);
+    var indexChain = akasha.indexChain(fileName);
     for (i = 0; i < indexChain.length; i++) {
     	breadCrumbData.push(crumb(akasha, indexChain[i]));
     }
