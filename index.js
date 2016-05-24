@@ -22,7 +22,7 @@
 const path     = require('path');
 const util     = require('util');
 const async    = require('async');
-const akasha = require('../akasharender');
+const akasha = require('akasharender');
 
 const log   = require('debug')('akasha:breadcrumbs-plugin');
 const error = require('debug')('akasha:error-breadcrumbs-plugin');
