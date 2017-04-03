@@ -1,7 +1,7 @@
 /**
  *
  * Copyright 2013 David Herron
- * 
+ *
  * This file is part of AkashaCMS-breadcrumbs (http://akashacms.com/).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +32,7 @@ module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
 	constructor() {
 		super("akashacms-breadcrumbs");
 	}
-	
+
 	configure(config) {
 		this._config = config;
 		config.addPartialsDir(path.join(__dirname, 'partials'));
@@ -47,7 +47,7 @@ var crumb = function(akasha, config, entry) {
 		// log(`crumb ${util.inspect(entry)} found ${util.inspect(found)}`);
 		var renderer = akasha.findRendererPath(found.foundFullPath);
 		if (renderer && renderer.metadata) {
-			return renderer.metadata(entry.foundDir, found.foundFullPath)
+			return renderer.metadata(entry.foundDir, found.foundPathWithinDir)
 			.then(metadata => {
 				// log(`${entry.foundDir} ${entry.foundPath} ${util.inspect(metadata)}`)
 				return {
@@ -106,14 +106,14 @@ module.exports.mahabhuta = [
 								cb();
 							},
 							err => {
-								if (err) { 
+								if (err) {
 									log('ERROR <breadcrumb-trail> '+ err);
-									reject(err); 
+									reject(err);
 								} else {
-									// log('DONE <breadcrumb-trail>'); 
-									resolve(); 
+									// log('DONE <breadcrumb-trail>');
+									resolve();
 								}
-							});	
+							});
 					});
 				});
 			})
