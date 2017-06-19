@@ -11,13 +11,11 @@ Add the following to `package.json`
 ```
 "dependencies": {
       ...
-      "akashacms-breadcrumbs": "akashacms/akashacms-breadcrumbs#akasharender",
+      "akashacms-breadcrumbs": ">=0.6",
       ...
 }
 ```
 
-
-The AkashaRender version of `akashacms-breadcrumbs` has not been published to `npm` yet, and therefore must be referenced this way.
 
 Once added to `package.json` run: `npm install`
 
