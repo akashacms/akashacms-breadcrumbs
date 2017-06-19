@@ -1,7 +1,7 @@
 /**
  *
  * Copyright 2013 David Herron
- * 
+ *
  * This file is part of AkashaCMS-breadcrumbs (http://akashacms.com/).
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,31 +17,51 @@
  *  limitations under the License.
  */
 
-var path     = require('path');
-var util     = require('util');
-var async    = require('async');
+'use strict';
 
-var akasha;
-var config;
-var logger;
+const path     = require('path');
+const util     = require('util');
+const async    = require('async');
+const akasha = require('akasharender');
 
-/**
- * Add ourselves to the config data.
- **/
-module.exports.config = function(_akasha, _config) {
-	akasha = _akasha;
-	config = _config;
-    logger = akasha.getLogger("breadcrumbs");
-    config.root_partials.push(path.join(__dirname, 'partials'));
-	return module.exports;
-};
+const log   = require('debug')('akasha:breadcrumbs-plugin');
+const error = require('debug')('akasha:error-breadcrumbs-plugin');
 
-var crumb = function(akasha, entry) {
+
+module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
+	constructor() {
+		super("akashacms-breadcrumbs");
+	}
+
+	configure(config) {
+		this._config = config;
+		config.addPartialsDir(path.join(__dirname, 'partials'));
+		config.addMahabhuta(module.exports.mahabhuta);
+	}
+}
+
+var crumb = function(akasha, config, entry) {
 	// util.log('crumb '+ entry.path);
-    return {
-        title: entry.frontmatter.yaml.title,
-        url: akasha.urlForFile(entry.path)
-    };
+	return akasha.findRendersTo(config.documentDirs, entry.foundPath)
+	.then(found => {
+		// log(`crumb ${util.inspect(entry)} found ${util.inspect(found)}`);
+		var renderer = akasha.findRendererPath(found.foundFullPath);
+		if (renderer && renderer.metadata) {
+			return renderer.metadata(entry.foundDir, found.foundPathWithinDir)
+			.then(metadata => {
+				// log(`${entry.foundDir} ${entry.foundPath} ${util.inspect(metadata)}`)
+				return {
+					title: metadata.title,
+					path: '/'+ entry.foundPath
+				};
+			});
+		} else {
+			return Promise.resolve({
+				title: path.basename(entry.foundPath),
+				path: '/'+ entry.foundPath
+			});
+		}
+	});
 };
 
 /**
@@ -49,22 +69,20 @@ var crumb = function(akasha, entry) {
  * the Entry for the given file, and any index.html that is a sibling or parent
  * of that file.
  **/
-var breadcrumbTrail = function(akasha, config, fileName, done) {
+var breadcrumbTrail = function(akasha, config, fileName) {
 	// util.log('breadcrumbTrail '+ fileName);
-    var breadCrumbData = [];
-    var fnBase = path.basename(fileName);
-    var dirname = path.dirname(fileName);
-    
-    var indexChain = akasha.indexChain(fileName);
-    for (i = 0; i < indexChain.length; i++) {
-    	breadCrumbData.push(crumb(akasha, indexChain[i]));
-    }
-    done(undefined, breadCrumbData);
+	return akasha.indexChain(config, fileName)
+	.then(trail => {
+		// log(`breadcrumbTrail ${util.inspect(trail)}`);
+        return Promise.all(trail.map(crumbdata => {
+			return crumb(akasha, config, crumbdata);
+		}));
+	});
 };
 
 module.exports.mahabhuta = [
 	function($, metadata, dirty, done) {
-		var docpath = metadata.documentPath;
+		var docpath = metadata.document.path;
 		var brdtrails = [];
 		$('breadcrumb-trail').each(function(i, elem) { brdtrails.push(elem); });
 		// util.log('breadcrumbs <breadcrumb-trail> count='+ brdtrails.length);
@@ -72,37 +90,35 @@ module.exports.mahabhuta = [
 			// util.log('EMPTY <breadcrumb-trail>');
 			done();
 		} else {
-			// util.log('before breadcrumbTrail '+ docpath);
-			breadcrumbTrail(akasha, config, docpath, function(err, trail) {
-				// util.log(util.inspect(trail));
-				if (err) { 
-					// util.log('ERROR <breadcrumb-trail> '+ err); 
-					done(err); 
-				} else {
-					// util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
-					akasha.partial("breadcrumb-trail.html.ejs", {
-						breadcrumbs: trail
-					}, function(err, replace) {
+			// log('before breadcrumbTrail '+ util.inspect(metadata.config) +" "+ docpath);
+			breadcrumbTrail(akasha, metadata.config, docpath)
+			.then(trail => {
+				log('<breadcrumb-trail> '+ util.inspect(trail));
+				// util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
+				return akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
+					breadcrumbs: trail
+				})
+				.then(replace => {
+					return new Promise((resolve, reject) => {
 						async.each(brdtrails,
-							function(brd, cb) {
-								if (err) cb(err);
-								else {
-									$(brd).replaceWith(replace);
-									cb();
-								}
+							(brd, cb) => {
+								$(brd).replaceWith(replace);
+								cb();
 							},
-							function(err) {
-								if (err) { 
-									// util.log('ERROR <breadcrumb-trail> '+ err);
-									done(err); 
+							err => {
+								if (err) {
+									log('ERROR <breadcrumb-trail> '+ err);
+									reject(err);
 								} else {
-									// util.log('DONE <breadcrumb-trail>'); 
-									done(); 
+									// log('DONE <breadcrumb-trail>');
+									resolve();
 								}
 							});
 					});
-				}
-			});
+				});
+			})
+			.then(() => { log('DONE #2 <breadcrumb-trail>'); done(); })
+			.catch(err => { error(err); done(err) });
 		}
 	}
 ];
