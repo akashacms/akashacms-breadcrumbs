@@ -1,7 +1,7 @@
 <div id="breadcrumbTrail">
     <%
-    for (var i in breadcrumbs) {
-        %> &raquo; <a href="<%= breadcrumbs[i].path %>"><%= breadcrumbs[i].title %></a><%
+    for (var crumb of breadcrumbs) {
+        %> &raquo; <a href="<%= crumb.path %>"><%= crumb.title %></a><%
     }
     %>
 </div>

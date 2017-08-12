@@ -70,14 +70,14 @@ var crumb = function(akasha, config, entry) {
  * of that file.
  **/
 var breadcrumbTrail = function(akasha, config, fileName) {
-	// util.log('breadcrumbTrail '+ fileName);
-	return akasha.indexChain(config, fileName)
-	.then(trail => {
-		// log(`breadcrumbTrail ${util.inspect(trail)}`);
+    // util.log('breadcrumbTrail '+ fileName);
+    return akasha.indexChain(config, fileName)
+    .then(trail => {
+        // console.log(`breadcrumbTrail ${util.inspect(trail)}`);
         return Promise.all(trail.map(crumbdata => {
-			return crumb(akasha, config, crumbdata);
-		}));
-	});
+            return crumb(akasha, config, crumbdata);
+        }));
+    });
 };
 
 module.exports.mahabhuta = [
@@ -93,12 +93,13 @@ module.exports.mahabhuta = [
 			// log('before breadcrumbTrail '+ util.inspect(metadata.config) +" "+ docpath);
 			breadcrumbTrail(akasha, metadata.config, docpath)
 			.then(trail => {
-				log('<breadcrumb-trail> '+ util.inspect(trail));
-				// util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
+                // log('<breadcrumb-trail> '+ util.inspect(trail));
+                // util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
 				return akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
 					breadcrumbs: trail
 				})
 				.then(replace => {
+                    // console.log(`replace ${replace}`);
 					return new Promise((resolve, reject) => {
 						async.each(brdtrails,
 							(brd, cb) => {
@@ -107,7 +108,7 @@ module.exports.mahabhuta = [
 							},
 							err => {
 								if (err) {
-									log('ERROR <breadcrumb-trail> '+ err);
+                                    // log('ERROR <breadcrumb-trail> '+ err);
 									reject(err);
 								} else {
 									// log('DONE <breadcrumb-trail>');
