@@ -21,8 +21,9 @@
 
 const path     = require('path');
 const util     = require('util');
-const async    = require('async');
+const co     = require('co');
 const akasha = require('akasharender');
+const mahabhuta = require('mahabhuta');
 
 const log   = require('debug')('akasha:breadcrumbs-plugin');
 const error = require('debug')('akasha:error-breadcrumbs-plugin');
@@ -40,86 +41,38 @@ module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
 	}
 }
 
-var crumb = function(akasha, config, entry) {
-	// util.log('crumb '+ entry.path);
-	return akasha.findRendersTo(config.documentDirs, entry.foundPath)
-	.then(found => {
-		// log(`crumb ${util.inspect(entry)} found ${util.inspect(found)}`);
-		var renderer = akasha.findRendererPath(found.foundFullPath);
-		if (renderer && renderer.metadata) {
-			return renderer.metadata(entry.foundDir, found.foundPathWithinDir)
-			.then(metadata => {
-				// log(`${entry.foundDir} ${entry.foundPath} ${util.inspect(metadata)}`)
-				return {
-					title: metadata.title,
-					path: '/'+ entry.foundPath
-				};
-			});
-		} else {
-			return Promise.resolve({
-				title: path.basename(entry.foundPath),
-				path: '/'+ entry.foundPath
-			});
-		}
-	});
-};
-
-/**
- * Find info useful for constructing a bookmark trail on a page.  This is
- * the Entry for the given file, and any index.html that is a sibling or parent
- * of that file.
- **/
-var breadcrumbTrail = function(akasha, config, fileName) {
-    // util.log('breadcrumbTrail '+ fileName);
-    return akasha.indexChain(config, fileName)
-    .then(trail => {
-        // console.log(`breadcrumbTrail ${util.inspect(trail)}`);
-        return Promise.all(trail.map(crumbdata => {
-            return crumb(akasha, config, crumbdata);
-        }));
-    });
-};
-
-module.exports.mahabhuta = [
-	function($, metadata, dirty, done) {
-		var docpath = metadata.document.path;
-		var brdtrails = [];
-		$('breadcrumb-trail').each(function(i, elem) { brdtrails.push(elem); });
-		// util.log('breadcrumbs <breadcrumb-trail> count='+ brdtrails.length);
-		if (brdtrails.length <= 0) {
-			// util.log('EMPTY <breadcrumb-trail>');
-			done();
-		} else {
-			// log('before breadcrumbTrail '+ util.inspect(metadata.config) +" "+ docpath);
-			breadcrumbTrail(akasha, metadata.config, docpath)
-			.then(trail => {
-                // log('<breadcrumb-trail> '+ util.inspect(trail));
-                // util.log('breadcrumbTrail cb called on '+ docpath +' trail='+ util.inspect(trail));
-				return akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
-					breadcrumbs: trail
-				})
-				.then(replace => {
-                    // console.log(`replace ${replace}`);
-					return new Promise((resolve, reject) => {
-						async.each(brdtrails,
-							(brd, cb) => {
-								$(brd).replaceWith(replace);
-								cb();
-							},
-							err => {
-								if (err) {
-                                    // log('ERROR <breadcrumb-trail> '+ err);
-									reject(err);
-								} else {
-									// log('DONE <breadcrumb-trail>');
-									resolve();
-								}
-							});
-					});
-				});
-			})
-			.then(() => { log('DONE #2 <breadcrumb-trail>'); done(); })
-			.catch(err => { error(err); done(err) });
-		}
+var crumb = co.wrap(function* (akasha, config, entry) {
+	var found = yield akasha.findRendersTo(config.documentDirs, entry.foundPath);
+	var renderer = akasha.findRendererPath(found.foundFullPath);
+	if (renderer && renderer.metadata) {
+		var metadata = yield renderer.metadata(entry.foundDir, found.foundPathWithinDir)
+		return {
+			title: metadata.title,
+			path: '/'+ entry.foundPath
+		};
+	} else {
+		return {
+			title: path.basename(entry.foundPath),
+			path: '/'+ entry.foundPath
+		};
 	}
-];
+});
+
+module.exports.mahabhuta = new mahabhuta.MahafuncArray("akashacms-breadcrumbs", {});
+
+class BreadcrumbTrailElement extends mahabhuta.CustomElement {
+	get elementName() { return "breadcrumb-trail"; }
+	process($element, metadata, dirty) {
+		var docpath = metadata.document.path;
+		return co(function* () {
+			var trail = yield akasha.indexChain(metadata.config, docpath);
+			trail = yield Promise.all(trail.map(crumbdata => {
+				return crumb(akasha, metadata.config, crumbdata);
+			}));
+			return yield akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
+				breadcrumbs: trail
+			});
+		});
+	}
+}
+module.exports.mahabhuta.addMahafunc(new BreadcrumbTrailElement());
