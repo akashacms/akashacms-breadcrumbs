@@ -23,7 +23,7 @@ const path     = require('path');
 const util     = require('util');
 const co     = require('co');
 const akasha = require('akasharender');
-const mahabhuta = require('mahabhuta');
+const mahabhuta = akasha.mahabhuta;
 
 const log   = require('debug')('akasha:breadcrumbs-plugin');
 const error = require('debug')('akasha:error-breadcrumbs-plugin');
@@ -66,9 +66,11 @@ class BreadcrumbTrailElement extends mahabhuta.CustomElement {
 		var docpath = metadata.document.path;
 		return co(function* () {
 			var trail = yield akasha.indexChain(metadata.config, docpath);
+			// console.log(`breadcrumb-trail ${util.inspect(trail)}`)
 			trail = yield Promise.all(trail.map(crumbdata => {
 				return crumb(akasha, metadata.config, crumbdata);
 			}));
+			// console.log(`breadcrumb-trail #2 ${util.inspect(trail)}`)
 			return yield akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
 				breadcrumbs: trail
 			});
