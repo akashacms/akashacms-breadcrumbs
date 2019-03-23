@@ -1,7 +1,7 @@
 <div id="breadcrumbTrail">
     <%
     for (var crumb of breadcrumbs) {
-        %> &raquo; <a href="<%= crumb.path %>"><%= crumb.title %></a><%
+        %> &raquo; <a class="p-category" href="<%= crumb.path %>"><%= crumb.title %></a><%
     }
     %>
 </div>

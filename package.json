@@ -11,12 +11,10 @@
     "type": "git",
     "url": "git://github.com/akashacms/akashacms-breadcrumbs.git"
   },
-  "version": "0.6.3",
+  "version": "0.6.4",
   "engines": {
     "node": ">=6.1"
   },
   "dependencies": {
-    "co": "*",
-    "debug": "^2.2.0"
   }
 }

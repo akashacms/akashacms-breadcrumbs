@@ -21,60 +21,53 @@
 
 const path     = require('path');
 const util     = require('util');
-const co     = require('co');
 const akasha = require('akasharender');
 const mahabhuta = akasha.mahabhuta;
 
-const log   = require('debug')('akasha:breadcrumbs-plugin');
-const error = require('debug')('akasha:error-breadcrumbs-plugin');
-
-
 module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
-	constructor() {
-		super("akashacms-breadcrumbs");
-	}
+    constructor() {
+        super("akashacms-breadcrumbs");
+    }
 
-	configure(config) {
-		this._config = config;
-		config.addPartialsDir(path.join(__dirname, 'partials'));
-		config.addMahabhuta(module.exports.mahabhuta);
-	}
+    configure(config) {
+        this._config = config;
+        config.addPartialsDir(path.join(__dirname, 'partials'));
+        config.addMahabhuta(module.exports.mahabhuta);
+    }
 }
 
-var crumb = co.wrap(function* (akasha, config, entry) {
-	var found = yield akasha.findRendersTo(config.documentDirs, entry.foundPath);
-	var renderer = akasha.findRendererPath(found.foundFullPath);
-	if (renderer && renderer.metadata) {
-		var metadata = yield renderer.metadata(entry.foundDir, found.foundPathWithinDir)
-		return {
-			title: metadata.title,
-			path: '/'+ entry.foundPath
-		};
-	} else {
-		return {
-			title: path.basename(entry.foundPath),
-			path: '/'+ entry.foundPath
-		};
-	}
-});
+var crumb = async function(akasha, config, entry) {
+    var found = await akasha.findRendersTo(config, entry.foundPath);
+    var renderer = config.findRendererPath(found.foundFullPath);
+    if (renderer && renderer.metadata) {
+        var metadata = await renderer.metadata(entry.foundDir, found.foundPathWithinDir)
+        return {
+            title: metadata.title,
+            path: '/'+ entry.foundPath
+        };
+    } else {
+        return {
+            title: path.basename(entry.foundPath),
+            path: '/'+ entry.foundPath
+        };
+    }
+};
 
 module.exports.mahabhuta = new mahabhuta.MahafuncArray("akashacms-breadcrumbs", {});
 
 class BreadcrumbTrailElement extends mahabhuta.CustomElement {
-	get elementName() { return "breadcrumb-trail"; }
-	process($element, metadata, dirty) {
-		var docpath = metadata.document.path;
-		return co(function* () {
-			var trail = yield akasha.indexChain(metadata.config, docpath);
-			// console.log(`breadcrumb-trail ${util.inspect(trail)}`)
-			trail = yield Promise.all(trail.map(crumbdata => {
-				return crumb(akasha, metadata.config, crumbdata);
-			}));
-			// console.log(`breadcrumb-trail #2 ${util.inspect(trail)}`)
-			return yield akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
-				breadcrumbs: trail
-			});
-		});
-	}
+    get elementName() { return "breadcrumb-trail"; }
+    async process($element, metadata, dirty) {
+        var docpath = metadata.document.path;
+        var trail = await metadata.config.akasha.indexChain(metadata.config, docpath);
+        // console.log(`breadcrumb-trail ${util.inspect(trail)}`)
+        trail = await Promise.all(trail.map(crumbdata => {
+            return crumb(metadata.config.akasha, metadata.config, crumbdata);
+        }));
+        // console.log(`breadcrumb-trail #2 ${util.inspect(trail)}`)
+        return await metadata.config.akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
+            breadcrumbs: trail
+        });
+    }
 }
 module.exports.mahabhuta.addMahafunc(new BreadcrumbTrailElement());
