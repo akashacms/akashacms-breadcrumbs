@@ -11,9 +11,9 @@
     "type": "git",
     "url": "git://github.com/akashacms/akashacms-breadcrumbs.git"
   },
-  "version": "0.6.4",
+  "version": "0.7.0",
   "engines": {
-    "node": ">=6.1"
+    "node": ">=12.1"
   },
   "dependencies": {
   }

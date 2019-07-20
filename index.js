@@ -24,16 +24,27 @@ const util     = require('util');
 const akasha = require('akasharender');
 const mahabhuta = akasha.mahabhuta;
 
+const pluginName = "akashacms-breadcrumbs";
+
+const _plugin_config = Symbol('config');
+const _plugin_options = Symbol('options');
+
 module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
     constructor() {
-        super("akashacms-breadcrumbs");
+        super(pluginName);
     }
 
-    configure(config) {
-        this._config = config;
+    configure(config, options) {
+        this[_plugin_config] = config;
+        this[_plugin_options] = options;
+        options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
-        config.addMahabhuta(module.exports.mahabhuta);
+        config.addMahabhuta(module.exports.mahabhutaArray(options));
     }
+
+    get config() { return this[_plugin_config]; }
+    get options() { return this[_plugin_options]; }
+
 }
 
 var crumb = async function(akasha, config, entry) {
@@ -53,21 +64,24 @@ var crumb = async function(akasha, config, entry) {
     }
 };
 
-module.exports.mahabhuta = new mahabhuta.MahafuncArray("akashacms-breadcrumbs", {});
+module.exports.mahabhutaArray = function(options) {
+    let ret = new mahabhuta.MahafuncArray(pluginName, options);
+    ret.addMahafunc(new BreadcrumbTrailElement());
+    return ret;
+};
 
 class BreadcrumbTrailElement extends mahabhuta.CustomElement {
     get elementName() { return "breadcrumb-trail"; }
     async process($element, metadata, dirty) {
         var docpath = metadata.document.path;
-        var trail = await metadata.config.akasha.indexChain(metadata.config, docpath);
+        var trail = await akasha.indexChain(this.array.options.config, docpath);
         // console.log(`breadcrumb-trail ${util.inspect(trail)}`)
         trail = await Promise.all(trail.map(crumbdata => {
-            return crumb(metadata.config.akasha, metadata.config, crumbdata);
+            return crumb(akasha, this.array.options.config, crumbdata);
         }));
         // console.log(`breadcrumb-trail #2 ${util.inspect(trail)}`)
-        return await metadata.config.akasha.partial(metadata.config, "breadcrumb-trail.html.ejs", {
+        return await akasha.partial(this.array.options.config, "breadcrumb-trail.html.ejs", {
             breadcrumbs: trail
         });
     }
 }
-module.exports.mahabhuta.addMahafunc(new BreadcrumbTrailElement());
