@@ -42,7 +42,7 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 1);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category').attr('href'), 
-                "/index.html");
+                "index.html");
 
     }); 
 
@@ -55,7 +55,7 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 1);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category').attr('href'),
-                "/page.html");
+                "page.html");
 
     });
 
@@ -68,9 +68,9 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 2);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "/no-index/lvl2/page.html");
+            .attr('href'), "page.html");
     });
 
     it('should have correct top level no-index page', async function() {
@@ -82,9 +82,9 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 2);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "/no-index/page.html");
+            .attr('href'), "page.html");
     });
 
     it('should have correct 2nd level with-index index page', async function() {
@@ -96,11 +96,11 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 3);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "/w-index/index.html");
+            .attr('href'), "../index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "/w-index/lvl2/index.html");
+            .attr('href'), "index.html");
     });
 
     it('should have correct 2nd level with-index sibling page', async function() {
@@ -112,13 +112,13 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 4);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "/w-index/index.html");
+            .attr('href'), "../index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "/w-index/lvl2/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(4)')
-            .attr('href'), "/w-index/lvl2/page.html");
+            .attr('href'), "page.html");
     });
 
     it('should have correct top level with-index index page', async function() {
@@ -130,9 +130,9 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 2);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "/w-index/index.html");
+            .attr('href'), "index.html");
     });
 
     it('should have correct top level with-index sibling page', async function() {
@@ -144,11 +144,11 @@ describe('test pages', function() {
 
         assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 3);
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "/w-index/index.html");
+            .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "/w-index/page.html");
+            .attr('href'), "page.html");
     });
 
 
