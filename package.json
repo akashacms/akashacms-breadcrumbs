@@ -4,16 +4,19 @@
     "email": "david@davidherron.com",
     "url": "http://davidherron.com"
   },
-  "name": "akashacms-breadcrumbs",
+  "name": "@akashacms/plugins-breadcrumbs",
   "description": "A plugin for AkashaCMS that generates breadcrumb trails",
   "homepage": "http://akashacms.com/plugins/breadcrumbs.html",
   "repository": {
     "type": "git",
     "url": "git://github.com/akashacms/akashacms-breadcrumbs.git"
   },
-  "version": "0.7.1",
+  "version": "0.7.2",
   "engines": {
     "node": ">=12.1"
+  },
+  "scripts": {
+      "dopublish": "npm publish --access public"
   },
   "dependencies": {
   }
