@@ -3,21 +3,51 @@ const akasha   = require('akasharender');
 const plugin = require('../index');
 const { assert } = require('chai');
 
-
-const config = new akasha.Configuration();
-config.rootURL("https://example.akashacms.com");
-config.configDir = __dirname;
-config.addLayoutsDir('layouts')
-      .addDocumentsDir('documents');
-config.use(plugin);
-config.setMahabhutaConfig({
-    recognizeSelfClosing: true,
-    recognizeCDATA: true,
-    decodeEntities: true
-});
-config.prepare();
+let config;
 
 describe('build site', function() {
+    it('should construct configuration', async function() {
+
+        this.timeout(15000);
+        config = new akasha.Configuration();
+        config.rootURL("https://example.akashacms.com");
+        config.configDir = __dirname;
+        config.addLayoutsDir('layouts')
+              .addDocumentsDir('documents');
+        config.use(plugin);
+        config.setMahabhutaConfig({
+            recognizeSelfClosing: true,
+            recognizeCDATA: true,
+            decodeEntities: true
+        });
+        config.prepare();
+    });
+
+    it('should run setup', async function() {
+        this.timeout(30000);
+        try {
+            await config.setup();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    });
+
+    /*
+    it('should successfully setup file caches', async function() {
+        this.timeout(75000);
+        try {
+            await (await akasha.filecache).documents.isReady();
+            // (await akasha.filecache).assets.isReady();
+            await (await akasha.filecache).layouts.isReady();
+            // await (await akasha.filecache).partials.isReady();
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    });
+    */
+
     it('should build site', async function() {
         this.timeout(15000);
         let failed = false;
@@ -152,4 +182,10 @@ describe('test pages', function() {
     });
 
 
+});
+
+describe("Finish up", function() {
+    it('should close the configuration', async function() {
+        await config.close();
+    });
 });

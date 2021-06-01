@@ -48,12 +48,11 @@ module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
 }
 
 var crumb = async function(akasha, config, entry) {
-    var found = await akasha.findRendersTo(config, entry.foundPath);
-    var renderer = config.findRendererPath(found.foundFullPath);
-    if (renderer && renderer.metadata) {
-        var metadata = await renderer.metadata(entry.foundDir, found.foundPathWithinDir)
+    const documents = (await akasha.filecache).documents;
+    let found = documents.find(entry.foundPath);
+    if (found && found.docMetadata) {
         return {
-            title: metadata.title,
+            title: found.docMetadata.title,
             path: '/'+ entry.foundPath
         };
     } else {
@@ -73,6 +72,7 @@ module.exports.mahabhutaArray = function(options) {
 class BreadcrumbTrailElement extends mahabhuta.CustomElement {
     get elementName() { return "breadcrumb-trail"; }
     async process($element, metadata, dirty) {
+        // console.log(`BreadcrumbTrailElement ${metadata.document.path}`);
         var docpath = metadata.document.path;
         var trail = await akasha.indexChain(this.array.options.config, docpath);
         // console.log(`breadcrumb-trail ${util.inspect(trail)}`)
@@ -80,8 +80,10 @@ class BreadcrumbTrailElement extends mahabhuta.CustomElement {
             return crumb(akasha, this.array.options.config, crumbdata);
         }));
         // console.log(`breadcrumb-trail #2 ${util.inspect(trail)}`)
-        return await akasha.partial(this.array.options.config, "breadcrumb-trail.html.ejs", {
+        let ret = await akasha.partial(this.array.options.config, "breadcrumb-trail.html.ejs", {
             breadcrumbs: trail
         });
+        // console.log(`AFTER BreadcrumbTrailElement ${metadata.document.path}`);
+        return ret;
     }
 }
