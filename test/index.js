@@ -24,29 +24,37 @@ describe('build site', function() {
     });
 
     it('should run setup', async function() {
-        this.timeout(30000);
+        this.timeout(75000);
         try {
-            await config.setup();
-        } catch (e) {
-            console.error(e);
-            throw e;
+            await akasha.cacheSetup(config);
+            await Promise.all([
+                akasha.setupDocuments(config),
+                akasha.setupAssets(config),
+                akasha.setupLayouts(config),
+                akasha.setupPartials(config)
+            ]);
+            let filecache = await akasha.filecache;
+            await Promise.all([
+                filecache.documents.isReady(),
+                filecache.assets.isReady(),
+                filecache.layouts.isReady(),
+                filecache.partials.isReady()
+            ]);
+        } catch (err) {
+            console.error(err.stack);
+            throw err;
         }
     });
 
-    /*
-    it('should successfully setup file caches', async function() {
+    it('should copy assets', async function() {
         this.timeout(75000);
         try {
-            await (await akasha.filecache).documents.isReady();
-            // (await akasha.filecache).assets.isReady();
-            await (await akasha.filecache).layouts.isReady();
-            // await (await akasha.filecache).partials.isReady();
-        } catch (e) {
-            console.error(e);
-            throw e;
+            await config.copyAssets();
+        } catch (err) {
+            console.error(err.stack);
+            throw err;
         }
     });
-    */
 
     it('should build site', async function() {
         this.timeout(15000);
@@ -186,6 +194,7 @@ describe('test pages', function() {
 
 describe("Finish up", function() {
     it('should close the configuration', async function() {
-        await config.close();
+        this.timeout(75000);
+        await akasha.closeCaches();
     });
 });
