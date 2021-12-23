@@ -6,12 +6,27 @@
   },
   "name": "@akashacms/plugins-breadcrumbs",
   "description": "A plugin for AkashaCMS that generates breadcrumb trails",
+  "keywords": [
+    "content management system",
+    "cms",
+    "static site generator",
+    "static file server",
+    "web development",
+    "build and deployment",
+    "renderer",
+    "templating",
+    "templates",
+    "website",
+    "website builder",
+    "blog",
+    "akashacms"
+  ],
   "homepage": "http://akashacms.com/plugins/breadcrumbs.html",
   "repository": {
     "type": "git",
     "url": "git://github.com/akashacms/akashacms-breadcrumbs.git"
   },
-  "version": "0.7.2",
+  "version": "0.8.0",
   "engines": {
     "node": ">=12.1"
   },
