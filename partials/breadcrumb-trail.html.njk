@@ -1,0 +1,5 @@
+<div id="breadcrumbTrail">
+    {% for crumb in breadcrumbs %}
+        &raquo; <a class="p-category" href="{{ crumb.path }}">{{ crumb.title }}</a>
+    {% endfor %}
+</div>
