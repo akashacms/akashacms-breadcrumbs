@@ -23,23 +23,33 @@ describe('build site', function() {
         config.prepare();
     });
 
+    it('should successfully setup cache database', async function() {
+        this.timeout(75000);
+        try {
+            await akasha.setup(config);
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
+    });
+
     it('should run setup', async function() {
         this.timeout(75000);
         try {
-            await akasha.cacheSetup(config);
-            await Promise.all([
-                akasha.setupDocuments(config),
-                akasha.setupAssets(config),
-                akasha.setupLayouts(config),
-                akasha.setupPartials(config)
-            ]);
-            let filecache = await akasha.filecache;
-            await Promise.all([
-                filecache.documents.isReady(),
-                filecache.assets.isReady(),
-                filecache.layouts.isReady(),
-                filecache.partials.isReady()
-            ]);
+            // await akasha.cacheSetup(config);
+            // await Promise.all([
+            //     akasha.setupDocuments(config),
+            //     akasha.setupAssets(config),
+            //     akasha.setupLayouts(config),
+            //     akasha.setupPartials(config)
+            // ]);
+            // let filecache = await akasha.filecache;
+            // await Promise.all([
+            //     filecache.documents.isReady(),
+            //     filecache.assets.isReady(),
+            //     filecache.layouts.isReady(),
+            //     filecache.partials.isReady()
+            // ]);
         } catch (err) {
             console.error(err.stack);
             throw err;
@@ -159,6 +169,24 @@ describe('test pages', function() {
             .attr('href'), "page.html");
     });
 
+    it('should have correct 2nd level with-index sibling page w/NJK', async function() {
+
+        let { html, $ } = await akasha.readRenderedFile(config, '/w-index/lvl2/page-njk.html');
+
+        assert.exists(html, 'result exists');
+        assert.isString(html, 'result isString');
+
+        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 4);
+        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
+            .attr('href'), "index.html");
+        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
+            .attr('href'), "../index.html");
+        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
+            .attr('href'), "index.html");
+        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(4)')
+            .attr('href'), "page-njk.html");
+    });
+
     it('should have correct top level with-index index page', async function() {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/w-index/index.html');
@@ -187,6 +215,22 @@ describe('test pages', function() {
             .attr('href'), "index.html");
         assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
             .attr('href'), "page.html");
+    });
+
+    it('should have correct top level with-index sibling page w/ NJK', async function() {
+
+        let { html, $ } = await akasha.readRenderedFile(config, '/w-index/page-njk.html');
+
+        assert.exists(html, 'result exists');
+        assert.isString(html, 'result isString');
+
+        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 3);
+        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
+            .attr('href'), "index.html");
+        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
+            .attr('href'), "index.html");
+        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
+            .attr('href'), "page-njk.html");
     });
 
 
