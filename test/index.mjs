@@ -1,7 +1,10 @@
 
-const akasha   = require('akasharender');
-const plugin = require('../index');
-const { assert } = require('chai');
+import akasha from 'akasharender';
+import { BasePlugin } from '@akashacms/plugins-base';
+import { BreadcrumbsPlugin } from '../index.mjs';
+import { assert } from 'chai';
+
+const __dirname = import.meta.dirname;
 
 let config;
 
@@ -14,7 +17,8 @@ describe('build site', function() {
         config.configDir = __dirname;
         config.addLayoutsDir('layouts')
               .addDocumentsDir('documents');
-        config.use(plugin);
+        config.use(BasePlugin);
+        config.use(BreadcrumbsPlugin);
         config.setMahabhutaConfig({
             recognizeSelfClosing: true,
             recognizeCDATA: true,

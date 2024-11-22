@@ -17,21 +17,18 @@
  *  limitations under the License.
  */
 
-'use strict';
-
-const path     = require('path');
-const util     = require('util');
-const akasha = require('akasharender');
+import path from 'node:path';
+import util from 'node:util';
+import akasha from 'akasharender';
 const mahabhuta = akasha.mahabhuta;
 
 const pluginName = "@akashacms/plugins-breadcrumbs";
 
-const _plugin_config = Symbol('config');
-const _plugin_options = Symbol('options');
+const __dirname = import.meta.dirname;
 
 var crumb = async function(akasha, config, entry) {
-    const documents = (await akasha.filecache).documents;
-    let found = documents.find(entry.foundPath);
+    const documents = akasha.filecache.documentsCache;
+    let found = await documents.find(entry.foundPath);
     if (found && found.docMetadata) {
         return {
             title: found.docMetadata.title,
@@ -45,22 +42,24 @@ var crumb = async function(akasha, config, entry) {
     }
 };
 
-module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
+export class BreadcrumbsPlugin extends akasha.Plugin {
+
+    #config;
+
     constructor() {
         super(pluginName);
     }
 
     configure(config, options) {
-        this[_plugin_config] = config;
-        this[_plugin_options] = options;
+        this.#config = config;
+        this.options = options;
         options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
         config.addLayoutsDir(path.join(__dirname, 'layouts'));
-        config.addMahabhuta(module.exports.mahabhutaArray(options));
+        config.addMahabhuta(mahabhutaArray(options));
     }
 
-    get config() { return this[_plugin_config]; }
-    get options() { return this[_plugin_options]; }
+    get config() { return this.#config; }
 
     // This cannot be called from a template which cannot
     // handle async functions
@@ -82,7 +81,7 @@ module.exports = class BreadcrumbsPlugin extends akasha.Plugin {
 
 }
 
-module.exports.mahabhutaArray = function(options) {
+export function mahabhutaArray(options) {
     let ret = new mahabhuta.MahafuncArray(pluginName, options);
     ret.addMahafunc(new BreadcrumbTrailElement());
     return ret;
