@@ -19,7 +19,12 @@
 
 import path from 'node:path';
 import util from 'node:util';
-import akasha from 'akasharender';
+import akasha, {
+    Configuration,
+    CustomElement,
+    Munger,
+    PageProcessor
+} from 'akasharender';
 const mahabhuta = akasha.mahabhuta;
 
 const pluginName = "@akashacms/plugins-breadcrumbs";
@@ -52,11 +57,12 @@ export class BreadcrumbsPlugin extends akasha.Plugin {
 
     configure(config, options) {
         this.#config = config;
+        this.akasha = config.akasha;
         this.options = options;
         options.config = config;
         config.addPartialsDir(path.join(__dirname, 'partials'));
         config.addLayoutsDir(path.join(__dirname, 'layouts'));
-        config.addMahabhuta(mahabhutaArray(options));
+        config.addMahabhuta(mahabhutaArray(options, config, this.akasha, this));
     }
 
     get config() { return this.#config; }
@@ -66,7 +72,7 @@ export class BreadcrumbsPlugin extends akasha.Plugin {
     async doBreadcrumbTrail(metadata) {
         // console.log(`BreadcrumbTrailElement ${util.inspect(metadata)}`);
         const docpath = metadata.document.path;
-        let trail = await akasha.indexChain(this.config, docpath);
+        let trail = await this.akasha.indexChain(this.config, docpath);
         // console.log(`breadcrumb-trail ${util.inspect(trail)}`)
         trail = await Promise.all(trail.map(crumbdata => {
             return crumb(akasha, this.config, crumbdata);
@@ -81,13 +87,18 @@ export class BreadcrumbsPlugin extends akasha.Plugin {
 
 }
 
-export function mahabhutaArray(options) {
+export function mahabhutaArray(
+    options,
+    config, // ?: Configuration,
+    akasha, // ?: any,
+    plugin  // ?: Plugin) {
+) {
     let ret = new mahabhuta.MahafuncArray(pluginName, options);
-    ret.addMahafunc(new BreadcrumbTrailElement());
+    ret.addMahafunc(new BreadcrumbTrailElement(config, akasha, plugin));
     return ret;
 };
 
-class BreadcrumbTrailElement extends mahabhuta.CustomElement {
+class BreadcrumbTrailElement extends CustomElement {
     get elementName() { return "breadcrumb-trail"; }
     async process($element, metadata, dirty) {
         // // console.log(`BreadcrumbTrailElement ${util.inspect(metadata)}`);
@@ -103,7 +114,7 @@ class BreadcrumbTrailElement extends mahabhuta.CustomElement {
         // });
         // // console.log(`AFTER BreadcrumbTrailElement ${metadata.document.path}`);
         // return ret;
-        return await this.array.options.config.plugin(pluginName)
+        return await this.config.plugin(pluginName)
                     .doBreadcrumbTrail(metadata);
     }
 }
