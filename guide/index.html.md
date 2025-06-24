@@ -11,28 +11,28 @@ Add the following to `package.json`
 ```json
 "dependencies": {
       ...
-      "@akashacms/plugins-breadcrumbs": "^0.7.x",
+      "@akashacms/plugins-breadcrumbs": "^0.9.x",
       ...
 }
 ```
-
 
 Once added to `package.json` run: `npm install`
 
 # Configuration
 
-Add the following to `config.js`
+Add the following to `config.mjs`
 
 ```js
-config
-    ...
-    .use(require('@akashacms/plugins-breadcrumbs'))
-    ...
+import { BreadcrumbsPlugin } from '@akashacms/plugins-breadcrumbs';
+// ...
+config.
+    .use(BreadcrumbsPlugin)
+    // ...
 ```
 
 # Custom Tags
 
-#### Generating the breadcrumb trail
+## Generating the breadcrumb trail
 
 Use this tag: `<breadcrumb-trail/>`
 

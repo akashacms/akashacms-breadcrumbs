@@ -8,7 +8,7 @@ $ npm install @akashacms/plugins-breadcrumbs
 
 The package `akashacms-breadcrumbs` is old and deprecated, and is replaced by this package.
 
-Then add this to the `config.js` for your site:
+Then add this to the `config.mjs` for your site:
 
 ```js
 import { BreadcrumbsPlugin } from '@akashacms/plugins-breadcrumbs';
