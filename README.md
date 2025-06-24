@@ -2,26 +2,33 @@ This is a plugin for [AkashaCMS](http://akashacms.com) which generates breadcrum
 
 To use it first install the module:
 
-    $ npm install akashacms-breadcrumbs
+```shell
+$ npm install @akashacms/plugins-breadcrumbs
+```
+
+The package `akashacms-breadcrumbs` is old and deprecated, and is replaced by this package.
 
 Then add this to the `config.js` for your site:
 
-    require('akashacms-breadcrumbs').config(module.exports);
+```js
+import { BreadcrumbsPlugin } from '@akashacms/plugins-breadcrumbs';
+// ...
+config.
+    .use(BreadcrumbsPlugin)
+    // ...
+```
 
 It automatically adds itself to the website configuration by
 
 * Adding a directory to the `partials` array.
-* Adding a function named `breadcrumbsSync` to those available in templates.
+* Adding a Mahafunc handling the tag `<breadcrumb-trail>`
 
 Then in a template you can use it like so:
 
-    <div class="row">
-    <section id="breadcrumb" class="col_12">
-      <%- breadcrumbsSync({
-        partial: "breadcrumbs.html.ejs",
-        fileName: fnameRelative
-      }) %>
-    </section>
-    </div>
+```html
+<div class="row">
+<breadcrumb-trail/>
+</div>
+```
 
-The module provides a partial named `breadcrumbs.html.ejs`.
+The module provides a partial named `breadcrumbs.html.njk`.
