@@ -31,22 +31,6 @@ const pluginName = "@akashacms/plugins-breadcrumbs";
 
 const __dirname = import.meta.dirname;
 
-var crumb = async function(akasha, config, entry) {
-    const documents = akasha.filecache.documentsCache;
-    let found = await documents.find(entry.foundPath);
-    if (found && found.docMetadata) {
-        return {
-            title: found.docMetadata.title,
-            path: '/'+ entry.foundPath
-        };
-    } else {
-        return {
-            title: path.basename(entry.foundPath),
-            path: '/'+ entry.foundPath
-        };
-    }
-};
-
 export class BreadcrumbsPlugin extends akasha.Plugin {
 
     #config;
@@ -75,10 +59,13 @@ export class BreadcrumbsPlugin extends akasha.Plugin {
         let trail = await this.akasha.indexChain(this.config, docpath);
         // console.log(`breadcrumb-trail ${util.inspect(trail)}`)
         trail = await Promise.all(trail.map(crumbdata => {
-            return crumb(akasha, this.config, crumbdata);
+            return {
+                title: crumbdata.title,
+                path: crumbdata.filename
+            };
         }));
         // console.log(`breadcrumb-trail #2 ${util.inspect(trail)}`)
-        let ret = await akasha.partial(this.config, "breadcrumb-trail.html.njk", {
+        let ret = await this.akasha.partial(this.config, "breadcrumb-trail.html.njk", {
             breadcrumbs: trail
         });
         // console.log(`AFTER BreadcrumbTrailElement ${metadata.document.path}`);
