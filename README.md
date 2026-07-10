@@ -1,3 +1,7 @@
+# akashacms-breadcrumbs
+
+This is version 0.10, meant for compatibility with akasharender@0.10
+
 This is a plugin for [AkashaCMS](http://akashacms.com) which generates breadcrumb trails.  These are the trail of links commonly put at the top of the content letting the user navigate to parent pages.
 
 To use it first install the module:
