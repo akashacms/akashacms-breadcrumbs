@@ -1,77 +1,42 @@
 
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+
 import akasha from 'akasharender';
 import { BasePlugin } from '@akashacms/plugins-base';
 import { BreadcrumbsPlugin } from '../index.mjs';
-import { assert } from 'chai';
 
 const __dirname = import.meta.dirname;
 
-let config;
+const config = new akasha.Configuration();
+config.rootURL("https://example.akashacms.com");
+config.configDir = __dirname;
+config.addLayoutsDir('layouts')
+      .addDocumentsDir('documents');
+config.use(BasePlugin);
+config.use(BreadcrumbsPlugin);
+config.setMahabhutaConfig({
+    recognizeSelfClosing: true,
+    recognizeCDATA: true,
+    decodeEntities: true
+});
+config.prepare();
 
-describe('build site', function() {
-    it('should construct configuration', async function() {
-
-        this.timeout(15000);
-        config = new akasha.Configuration();
-        config.rootURL("https://example.akashacms.com");
-        config.configDir = __dirname;
-        config.addLayoutsDir('layouts')
-              .addDocumentsDir('documents');
-        config.use(BasePlugin);
-        config.use(BreadcrumbsPlugin);
-        config.setMahabhutaConfig({
-            recognizeSelfClosing: true,
-            recognizeCDATA: true,
-            decodeEntities: true
-        });
-        config.prepare();
-    });
-
-    it('should successfully setup cache database', async function() {
-        this.timeout(75000);
+describe('build site', () => {
+    it('should successfully setup cache database', async () => {
         try {
             await akasha.setup(config);
         } catch (e) {
             console.error(e);
             throw e;
         }
-    });
+    }, { timeout: 75000 });
 
-    it('should run setup', async function() {
-        this.timeout(75000);
-        try {
-            // await akasha.cacheSetup(config);
-            // await Promise.all([
-            //     akasha.setupDocuments(config),
-            //     akasha.setupAssets(config),
-            //     akasha.setupLayouts(config),
-            //     akasha.setupPartials(config)
-            // ]);
-            // let filecache = await akasha.filecache;
-            // await Promise.all([
-            //     filecache.documents.isReady(),
-            //     filecache.assets.isReady(),
-            //     filecache.layouts.isReady(),
-            //     filecache.partials.isReady()
-            // ]);
-        } catch (err) {
-            console.error(err.stack);
-            throw err;
-        }
-    });
+    it('should copy assets', async () => {
+        await config.copyAssets();
+    }, { timeout: 75000 });
 
-    it('should copy assets', async function() {
-        this.timeout(75000);
-        try {
-            await config.copyAssets();
-        } catch (err) {
-            console.error(err.stack);
-            throw err;
-        }
-    });
-
-    it('should build site', async function() {
-        this.timeout(15000);
+    it('should build site', async () => {
         let failed = false;
         let results = await akasha.render(config);
         for (let result of results) {
@@ -80,169 +45,188 @@ describe('build site', function() {
                 console.error(result.error);
             }
         }
-        assert.isFalse(failed);
-    });
+        assert.equal(failed, false);
+    }, { timeout: 25000 });
 });
 
-describe('test pages', function() {
-    it('should have correct home page', async function() {
+describe('test pages', () => {
+    it('should have correct home page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/index.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 1);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category').attr('href'), 
-                "index.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail[itemtype="https://schema.org/BreadcrumbList"]').length, 1);
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 1);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').attr('href')
+                .includes("index.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail span[itemprop="itemListElement"] meta[itemprop="position"]').eq(0).attr('content'), "1");
 
-    }); 
+    });
 
-    it('should have correct sibling to home page', async function() {
+    it('should have correct sibling to home page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/page.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 1);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category').attr('href'),
-                "page.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 1);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').attr('href')
+                .includes("page.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail span[itemprop="itemListElement"] meta[itemprop="position"]').eq(0).attr('content'), "1");
 
     });
 
-    it('should have correct 2nd level no-index page', async function() {
+    it('should have correct 2nd level no-index page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/no-index/lvl2/page.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 2);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "page.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 2);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("page.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(1).attr('content'), "2");
     });
 
-    it('should have correct top level no-index page', async function() {
+    it('should have correct top level no-index page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/no-index/page.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 2);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "page.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 2);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("page.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(1).attr('content'), "2");
     });
 
-    it('should have correct 2nd level with-index index page', async function() {
+    it('should have correct 2nd level with-index index page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/w-index/lvl2/index.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 3);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "../index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "index.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 3);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("../index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(2)
+            .attr('href').includes("index.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(1).attr('content'), "2");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(2).attr('content'), "3");
     });
 
-    it('should have correct 2nd level with-index sibling page', async function() {
+    it('should have correct 2nd level with-index sibling page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/w-index/lvl2/page.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 4);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "../index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(4)')
-            .attr('href'), "page.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 4);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("../index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(2)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(3)
+            .attr('href').includes("page.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(3).attr('content'), "4");
     });
 
-    it('should have correct 2nd level with-index sibling page w/NJK', async function() {
+    it('should have correct 2nd level with-index sibling page w/NJK', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/w-index/lvl2/page-njk.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 4);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "../index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(4)')
-            .attr('href'), "page-njk.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 4);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("../index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(2)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(3)
+            .attr('href').includes("page-njk.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(3).attr('content'), "4");
     });
 
-    it('should have correct top level with-index index page', async function() {
+    it('should have correct top level with-index index page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/w-index/index.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 2);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "index.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 2);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("index.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(1).attr('content'), "2");
     });
 
-    it('should have correct top level with-index sibling page', async function() {
+    it('should have correct top level with-index sibling page', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/w-index/page.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 3);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "page.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 3);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(2)
+            .attr('href').includes("page.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(2).attr('content'), "3");
     });
 
-    it('should have correct top level with-index sibling page w/ NJK', async function() {
+    it('should have correct top level with-index sibling page w/ NJK', async () => {
 
         let { html, $ } = await akasha.readRenderedFile(config, '/w-index/page-njk.html');
 
-        assert.exists(html, 'result exists');
-        assert.isString(html, 'result isString');
+        assert.ok(html, 'result exists');
+        assert.equal(typeof html, 'string', 'result isString');
 
-        assert.equal($('#breadcrumbs #breadcrumbTrail a.p-category').length, 3);
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(1)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(2)')
-            .attr('href'), "index.html");
-        assert.include($('#breadcrumbs #breadcrumbTrail a.p-category:nth-child(3)')
-            .attr('href'), "page-njk.html");
+        assert.equal($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').length, 3);
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(0)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(1)
+            .attr('href').includes("index.html"));
+        assert.ok($('#breadcrumbs #breadcrumbTrail a[itemprop="item"]').eq(2)
+            .attr('href').includes("page-njk.html"));
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(0).attr('content'), "1");
+        assert.equal($('#breadcrumbs #breadcrumbTrail meta[itemprop="position"]').eq(2).attr('content'), "3");
     });
 
 
 });
 
-describe("Finish up", function() {
-    it('should close the configuration', async function() {
-        this.timeout(75000);
+describe("Finish up", () => {
+    it('should close the configuration', async () => {
         await akasha.closeCaches();
-    });
+    }, { timeout: 75000 });
 });
