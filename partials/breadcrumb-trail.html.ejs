@@ -1,7 +1,9 @@
-<div id="breadcrumbTrail">
+<div id="breadcrumbTrail" itemscope itemtype="https://schema.org/BreadcrumbList">
     <%
+    var breadcrumbPosition = 0;
     for (var crumb of breadcrumbs) {
-        %> &raquo; <a class="p-category" href="<%= crumb.path %>"><%= crumb.title %></a><%
+        breadcrumbPosition++;
+        %><span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"> &raquo; <a itemprop="item" href="<%= crumb.path %>"><span itemprop="name"><%= crumb.title %></span></a><meta itemprop="position" content="<%= breadcrumbPosition %>" /></span><%
     }
     %>
 </div>
